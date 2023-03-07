@@ -21,7 +21,7 @@ import * as d3Sankey from "d3-sankey";
 import { default as RBush } from "rbush";
 
 // Data column indices
-const FROM = 0, TO = 1, WEIGHT = 2;
+const FROM = 0, TO = 1, WEIGHT = 2, PERFORMANCE = 3;
 
 const DATA_POINTS_LIMIT = 10000; // TODO: Arbitrary limit for datapoints for now, to avoid blowing up.
 
@@ -59,6 +59,7 @@ type Link = {
     source: any; // source and target can be string / Node
     target: any;
     value: number;
+    performance: number;
     _negated?: boolean;
 }
 
@@ -161,6 +162,7 @@ export default class extends RenderBase
 
     private _domains: string[];    // current set of domains of categories
     private _colorsFn: any;             // _colorsFn function based on current domains and choice of palette.
+    private _colorsFnPerformance: any;             // _colorsFn function based on current performance and colors in props.
 
     // Store current links and nodes to avoid keep on recalculating them unnecessarily for rendering
     // reasons like decorations change or resizing.
@@ -208,6 +210,13 @@ export default class extends RenderBase
                 break;
             case "linkFillType":
                 this.properties.setActive( "linkFillSolidColor", this.properties.get( "linkFillType" ) === "solid" );
+                this.properties.setActive( "linkFillPerformanceAColor", this.properties.get( "linkFillType" ) === "performanceBased" );
+                this.properties.setActive( "linkFillPerformanceBColor", this.properties.get( "linkFillType" ) === "performanceBased" );
+                this.properties.setActive( "linkFillPerformanceCColor", this.properties.get( "linkFillType" ) === "performanceBased" );
+                this.properties.setActive( "linkFillPerformanceDColor", this.properties.get( "linkFillType" ) === "performanceBased" );
+                this.properties.setActive( "thresholdAB", this.properties.get( "linkFillType" ) === "performanceBased" );
+                this.properties.setActive( "thresholdBC", this.properties.get( "linkFillType" ) === "performanceBased" );
+                this.properties.setActive( "thresholdCD", this.properties.get( "linkFillType" ) === "performanceBased" );
                 break;
             case "node.border.width":
                 this.properties.setActive( "node.border.color", _value > 0 );
@@ -268,6 +277,7 @@ export default class extends RenderBase
 
             // Create color function
             this._colorsFn = this._createColorFn( _info );
+            this._colorsFnPerformance = this._createColorFnPerformance( _info );
 
             // Update nodes.
             this._renderNodes( _info, svg, nodes );
@@ -337,6 +347,25 @@ export default class extends RenderBase
             return ( _d: Node ): string => palette.getColor( _d.$ ).toString();
     }
 
+    private _createColorFnPerformance( _info: UpdateInfo ): Function
+    {
+        const colorA = _info.props.get( "linkFillPerformanceAColor" ) as string;
+        const colorB = _info.props.get( "linkFillPerformanceBColor" ) as string;
+        const colorC = _info.props.get( "linkFillPerformanceCColor" ) as string;
+        const colorD = _info.props.get( "linkFillPerformanceDColor" ) as string;
+        const thresholdAB = _info.props.get( "thresholdAB" ) as number;
+        const thresholdBC = _info.props.get( "thresholdBC" ) as number;
+        const thresholdCD = _info.props.get( "thresholdCD" ) as number;
+        
+        return ( _d: Link ): string => {
+            if (_d.performance < thresholdAB) return colorA;
+            if (_d.performance < thresholdBC) return colorB;
+            if (_d.performance < thresholdCD) return colorC;
+            return colorD;
+            
+        }
+    }
+
     private _decorate( _svg: any, _hasSelections: boolean ): void
     {
         const linkOpacity = createLinkOpacityFn( _hasSelections );
@@ -382,6 +411,8 @@ export default class extends RenderBase
                 return this._colorsFn( d.target );
             case "solid":
                 return _info.props.get( "linkFillSolidColor" ).toString();
+            case "performanceBased":
+                return this._colorsFnPerformance( d );
             default:
                 return `url(#${this._gradient( d, i )})`;
             }
@@ -473,6 +504,7 @@ export default class extends RenderBase
                 source: `N:${_row.tuple( FROM ).caption}`,
                 target: `N:${_row.tuple( TO ).caption}`,
                 value: _row.value( WEIGHT ),
+                performance: _row.value( PERFORMANCE ),
                 key: _row.key,
                 $: _row // bound vipr datapoint - for hittest
             } ) );
@@ -487,6 +519,7 @@ export default class extends RenderBase
                         source: _d.target,
                         target: _d.source,
                         value: -1 * _d.value,
+                        performance: -1* _d.performance,
                         key: _d.key,
                         $: _d.$, // bound vipr datapoint - for hittest
                         _negated: true // special flag to help extra data processing if needed

@@ -14,6 +14,7 @@ disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
         <slot name="from" caption="$nls.slot.from" type="cat" optional="false" />
         <slot name="to" caption="$nls.slot.to" type="cat" optional="false" />
         <slot name="weight" caption="$nls.slot.weight" type="cont" optional="false" />
+        <slot name="performance" caption="$nls.slot.performance" type="cont" optional="true" />
     </slots>
 
     <properties>
@@ -57,8 +58,16 @@ disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
                     <possibleValue caption="$nls.linkFillType.from">from</possibleValue>
                     <possibleValue caption="$nls.linkFillType.to">to</possibleValue>
                     <possibleValue caption="$nls.linkFillType.solid">solid</possibleValue>
+                    <possibleValue caption="$nls.linkFillType.performance">performanceBased</possibleValue>
                 </enum>
                 <color name="linkFillSolidColor" caption="$nls.link.color" defaultValue="#808080"/>
+                <color name="linkFillPerformanceAColor" caption="$nls.link.colorPerformanceA" defaultValue="#080808"/>
+                <color name="linkFillPerformanceBColor" caption="$nls.link.colorPerformanceB" defaultValue="#fa0202"/>
+                <color name="linkFillPerformanceCColor" caption="$nls.link.colorPerformanceC" defaultValue="#f2e205"/>
+                <color name="linkFillPerformanceDColor" caption="$nls.link.colorPerformanceD" defaultValue="#06d653"/>
+                <number name="thresholdAB" defaultValue="50" minValue="1"  caption="$nls.thresholdAB" description="$nls.thresholdAB.desc"/>
+                <number name="thresholdBC" defaultValue="75" minValue="1"  caption="$nls.thresholdBC" description="$nls.thresholdBC.desc"/>
+                <number name="thresholdCD" defaultValue="85" minValue="1"  caption="$nls.thresholdCD" description="$nls.thresholdCD.desc"/>
             </group>
              <group name="algorithm" caption="$nls.group.advance">
                 <boolean name="algorithm.considerNegatives" defaultValue="false" caption="$nls.advance.considerNegatives" description="$nls.advance.considerNegatives.desc"/>
@@ -71,6 +80,7 @@ disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
             <ref slot="from" />
             <ref slot="to" />
             <ref slot="weight" />
+            <ref slot="performance" />
         </dataSet>
     </dataSets>
 
